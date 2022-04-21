@@ -18,7 +18,7 @@ void *rec_func(void *arg)
 
     while(1)
     {
-        if(nbytes=recv(new_fd,buffer,RECVBUFSIZE,0)==-1)
+        if((nbytes=recv(new_fd,buffer,RECVBUFSIZE,0))==-1)
         {
             fprintf(stderr,"Read Error:%s\n",strerror(errno));
             exit(1);
@@ -26,17 +26,17 @@ void *rec_func(void *arg)
         if(nbytes==-1)
         {
             //client error, return -1
-            close(new_fd)
+            close(new_fd);
             break;
         }
         if(nbytes==0)
         {
             //client disconnected,return 0
-            close(new_fd)
+            close(new_fd);
             break;
         }
         buffer[nbytes]='\0';
-        printf("received:\n%s\n",buffer);
+        printf("received:%s\n",buffer);
 
         if(send(new_fd,buffer,strlen(buffer),0)==-1)
         {
@@ -46,12 +46,14 @@ void *rec_func(void *arg)
     }
 }
 
+	
+	
 int main(int argc,char *argv[])
 {
     char buffer[RECVBUFSIZE];
     int sockfd,new_fd,nbytes;
     struct sockaddr_in server_addr;
-    struct sockaddr_in client_arrr;
+    struct sockaddr_in client_addr;
     int sin_size,portnumber;
     pthread_t tid;
     int *pconnsocke = NULL;
@@ -60,7 +62,7 @@ int main(int argc,char *argv[])
     //input format error
     if(argc!=2)
     {
-        fpirnf(stderr,"Usage:%s portnumber\n",argv[0]);
+        fprintf(stderr,"Usage:%s portnumber\n",argv[0]);
         exit(1);
     }
 
@@ -87,16 +89,16 @@ int main(int argc,char *argv[])
     server_addr.sin_port=htons(portnumber);
 
     //bind
-    if(bind(sockfd,(struct sockaddr *)(&server_addr),sizeof(struct sockarrd))==-1)
+    if(bind(sockfd,(struct sockaddr *)(&server_addr),sizeof(struct sockaddr))==-1)
     {
-        fprinf(stderr,"Bind error:%s\n",strerror(errno));
+        fprintf(stderr,"Bind error:%s\n",strerror(errno));
         exit(1);
     }
 
     //listen
     if(listen(sockfd,10)==-1)
     {
-        fprinf(stderr,"Listen error:%s\n",strerror(errno));
+        fprintf(stderr,"Listen error:%s\n",strerror(errno));
         exit(1);
     }
 
@@ -105,9 +107,9 @@ int main(int argc,char *argv[])
     {
         sin_size=sizeof(struct sockaddr_in);
         //accept
-        if((new_fd=accept(sockfd,(struct sockaddr *)(&client_addr),&sin_size))==-1)
+        if((new_fd=accept(sockfd,(struct sockaddr *)&client_addr,&sin_size))==-1)
         {
-            fprinf(stderr,"Accept error:%s\n",strerror(errno));
+            fprintf(stderr,"Accept error:%s\n",strerror(errno));
             exit(1);
         }
 

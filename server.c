@@ -26,9 +26,9 @@ int add_user(int sockfd,struct protocol *msg){
         if(online[i].flage ==-1){
             online[i].flage=1;
             strcpy(online[i].name,msg->name);
-            strcpy(online[i].name,msg->name);
             printf("regist %s to %d. \n",msg->name,i);
             index=i;
+            break;
         }
     }
     return index;
@@ -60,7 +60,7 @@ int find_dest_user_online(int sockfd,int *index ,struct protocol *msg){
             }
         }
     }
-
+	return OP_OK;
 }
 
 int find_dest_user(char *name){
@@ -119,7 +119,7 @@ void registe(int sockfd,int *index,struct protocol *msg){
     int dest_index;
     char buf[128];
     struct protocol msg_back;
-
+    int i;
     msg_back.cmd=REGISTE;
 
     //find
@@ -130,13 +130,12 @@ void registe(int sockfd,int *index,struct protocol *msg){
         *index=add_user(sockfd,msg);
         online[*index].flage=1;
         msg_back.state= OP_OK;
-	strcpy(msg_back.data,"regist success.\n");
         printf("User %s regist success!\n",msg->name);
         write(sockfd,&msg_back,sizeof(msg_back));
+        for(i=0;i<64;i++)printf("%s %d",online[i].name, i);
         return;
     }else{
         msg_back.state= NAME_EXIST;
-        strcpy(msg_back.data,"user already exist!\n");
         printf("user %s exist!\n",msg->name);
         write(sockfd,&msg_back,sizeof(msg_back));
         return;
@@ -257,12 +256,12 @@ int main(int argc,char *argv[])
 
     //fill in the sockaddr of server
     bzero(&my_addr,sizeof(struct sockaddr_in));
-    my_addr.sin_family  =AF_INET;
+    my_addr.sin_family  =PF_INET;
     my_addr.sin_addr.s_addr=htonl(INADDR_ANY);//gain the addr of network interface card automatically
     my_addr.sin_port=htons(portnumber);
     addrLen = sizeof(struct sockaddr_in);
     //bind
-    if(bind(lsfd,(struct sockaddr *)(&my_addr),sizeof(struct sockaddr))==-1)
+    if(bind(lsfd,(struct sockaddr *)(&my_addr),addrLen)<0)
     {
         fprintf(stderr,"Bind error:%s\n",strerror(errno));
         exit(1);

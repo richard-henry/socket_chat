@@ -69,8 +69,13 @@ void list_online_user(sockfd){
     msg.cmd = ONLINEUSER;
 
     write(sockfd,&msg,sizeof(msg));
-    printf("press following section to continue:\n");
-    //getchar();
+    /*while(1){
+    read(sockfd,&msg,sizeof(msg));
+    if(msg.state==ONLINEUSER_OK){
+	printf("%s\t", msg.name);
+}
+else break;
+}*/
 }
 
 int registe(int fd){

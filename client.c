@@ -47,6 +47,7 @@ void broadcast(int fd){
         scanf("%s",msg.data);
 
         write(fd,&msg,sizeof(msg));
+        printf("press following section to continue:\n");
 }
 void private(int fd){
         struct protocol msg;
@@ -59,6 +60,7 @@ void private(int fd){
         scanf("%s",msg.data);
 
         write(fd,&msg,sizeof(msg));
+        printf("press following section to continue:\n");
         
 }
 void list_online_user(sockfd){
@@ -67,8 +69,8 @@ void list_online_user(sockfd){
     msg.cmd = ONLINEUSER;
 
     write(sockfd,&msg,sizeof(msg));
-    printf("press any key to continue:\n");
-    getchar();
+    printf("press following section to continue:\n");
+    //getchar();
 }
 
 int registe(int fd){
@@ -82,14 +84,14 @@ int registe(int fd){
     read(sockfd,&msgback,sizeof(msgback));
     if(msgback.state!=OP_OK){
         printf("NAME EXISTED, TRY ANOTHER.\n");
-        printf("press any key to continue:\n");
+        printf("press following section to continue:\n");
         getchar();
         return -1;
     }
     else{
         printf("Regist Success.\n");
-        printf("press any key to continue:\n");
-        getchar();
+        printf("press following section to continue:\n");
+        //getchar();
         return 0;
     }
 }
@@ -103,15 +105,15 @@ int login(int fd){
     write(sockfd,&msg,sizeof(msg));
     read(sockfd,&msgback,sizeof(msgback));
     if(msgback.state!=OP_OK){
-        printf("NAME EXISTED, TRY ANOTHER:");
-        printf("press any key to continue:\n");
-        getchar();
+        printf("NAME ERROR, TRY ANOTHER:\n");
+        printf("press following section to continue:\n");
+        //getchar();
         return -1;
     }
     else{
         printf("Login Success.\n");
-        printf("press any key to continue:\n");
-        getchar();
+        printf("press following section to continue:\n");
+        //getchar();
         login_f=1;
         return OP_OK;
     }
@@ -167,7 +169,7 @@ int main(int argc,char **argv[]){
         pthread_create(&pid,NULL,func,NULL);
     	while(1)
         {
-            system("clear");
+            //system("clear");
             if(login_f==-1){
                 printf("\t 1 register\n");
                 printf("\t 2 login\n");

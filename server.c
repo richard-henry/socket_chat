@@ -130,15 +130,15 @@ void registe(int sockfd,int *index,struct protocol *msg){
         *index=add_user(sockfd,msg);
         online[*index].flage=1;
         msg_back.state= OP_OK;
-
+	strcpy(msg_back.data,"regist success.\n");
         printf("User %s regist success!\n",msg->name);
         write(sockfd,&msg_back,sizeof(msg_back));
         return;
     }else{
         msg_back.state= NAME_EXIST;
+        strcpy(msg_back.data,"user already exist!\n");
         printf("user %s exist!\n",msg->name);
         write(sockfd,&msg_back,sizeof(msg_back));
-        //write(sockfd,buf,strlen(buf));
         return;
     }
 }
@@ -146,7 +146,7 @@ void registe(int sockfd,int *index,struct protocol *msg){
 void login(int sockfd,int *index, struct protocol *msg){
     int i;
     int ret;
-    char buf[128],buffer[128];
+    char buf[128];
     struct protocol msg_back;
 
     msg_back.cmd=LOGIN;
@@ -164,6 +164,7 @@ void login(int sockfd,int *index, struct protocol *msg){
         return;
     }else{
         msg_back.state= OP_OK;
+        strcpy(msg_back.data,"login success!\n");
         printf("user %s login succeed! index=%d \n",msg->name,*index);
         write(online[*index].fd,&msg_back,sizeof(msg_back));
         //return;

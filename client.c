@@ -9,39 +9,71 @@ int login_f =-1;
 void *func(void *arg)
 {
 	int len;
-    char buf[64]={0};
-	
-	new_fd = *((int *) arg);
-	free(arg);
-	
+    char buf[128]={0};
+	struct protocol *msg;
+
 	while(1)
 	{
 		if(login_f !=1)
         {
             continue;
         }
-
+        memset(buf,0,sizeof(buf));
         len = read(sockfd,buf,sizeof(buf));
         if(len<=0){
             close(sockfd);
             return;
+        }
+
+        msg= (struct protocol *)buf;
+        if((msg->state == ONLINEUSER_OK)&&(msg->cmd == ONLINEUSER))
+        {
+            printf("%s\t",msg->name);
+            continue;
+        }
+        if((msg->state == ONLINEUSER_OVER)&&(msg->cmd == ONLINEUSER))
+        {
+            printf("\n");
+            continue;
         }
         buf[len]='\0';
         printf("%s\n",buf);
     }
 }
 void broadcast(int fd){
+        struct protocol msg;
+        msg.cmd = BROADCAST;
+        printf("your message:\n#");
+        scanf("%s",msg.data);
 
+        write(fd,&msg,sizeof(msg));
 }
 void private(int fd){
+        struct protocol msg;
+        msg.cmd= PRIVATE;
 
+        printf("input name you want to talk:\n#");
+        scanf("%s",msg.name);
+
+        printf("your message:\n#");
+        scanf("%s",msg.data);
+
+        write(fd,&msg,sizeof(msg));
+        
 }
 void list_online_user(sockfd){
 
+    struct protocol msg;
+    msg.cmd = ONLINEUSER;
+
+    write(sockfd,&msg,sizeof(msg));
+    printf("press any key to continue:\n");
+    getchar();
 }
+
 int registe(int fd){
     struct protocol msg,msgback;
-
+    char buf[128]; 
     msg.cmd=REGISTE;
     printf("input you username:\n");
     scanf("%s",msg.name);
@@ -49,14 +81,14 @@ int registe(int fd){
     write(sockfd,&msg,sizeof(msg));
     read(sockfd,&msgback,sizeof(msgback));
     if(msgback.state!=OP_OK){
-        printf("NAME EXISTED, TRY ANOTHER:");
-        getchar();
+        printf("NAME EXISTED, TRY ANOTHER.\n");
+        printf("press any key to continue:\n");
         getchar();
         return -1;
     }
     else{
         printf("Regist Success.\n");
-        getchar();
+        printf("press any key to continue:\n");
         getchar();
         return 0;
     }
@@ -72,13 +104,13 @@ int login(int fd){
     read(sockfd,&msgback,sizeof(msgback));
     if(msgback.state!=OP_OK){
         printf("NAME EXISTED, TRY ANOTHER:");
-        getchar();
+        printf("press any key to continue:\n");
         getchar();
         return -1;
     }
     else{
         printf("Login Success.\n");
-        getchar();
+        printf("press any key to continue:\n");
         getchar();
         login_f=1;
         return OP_OK;
@@ -100,8 +132,8 @@ int main(int argc,char **argv[]){
     //check the number of arguments
     if(argc!=3)
     {
-        fprintf(stderr,"Usage:%s hostname portnumber\n",argv[0]);
-        exit(1);
+        printf("cmd: %s ip portnumber\n",argv[0]);
+        return;
     }
     //get the portnumber
     if((portnumber=atoi(argv[2]))<0)
@@ -110,7 +142,7 @@ int main(int argc,char **argv[]){
         exit(1);
     }
     //create a socket
-    if((sockfd=socket(AF_INET,SOCK_STREAM,0))==-1)
+    if((sockfd=socket(PF_INET,SOCK_STREAM,0))==-1)
     {
         fprintf(stderr,"Socket Error:%s\n",strerror(errno));
         exit(1);
@@ -141,11 +173,11 @@ int main(int argc,char **argv[]){
                 printf("\t 2 login\n");
             }
             else if(login_f==1){
-                printf("\t broadcast\n");
-                printf("\t private\n");
-                printf("\t online_list\n");
+                printf("\t 3 broadcast\n");
+                printf("\t 4 private\n");
+                printf("\t 5 show online_list\n");
             }
-            printf("\t quit 0\n");
+            printf("\t 0 quit\n");
 
             fflush(stdin);
             scanf("%d",&sel);

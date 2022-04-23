@@ -11,13 +11,13 @@ void del_user_online(int index){
     sprintf(buf,"%s offline.\n",online[index].name);
     //remind other users someone is offline.
     for(int i=0;i<MAX_USER_NUM;i++){
-        if(online[i]_fd ==-1)continue;
+        if(online[i].fd ==-1)continue;
         write(online[i].fd,buf,strlen(buf));
     }
     return;
 }
 
-int add_user(itn sockfd,struct protocol *msg){
+int add_user(int sockfd,struct protocol *msg){
     int i,index=-1;
     char buf[128]={0};
 
@@ -34,9 +34,16 @@ int add_user(itn sockfd,struct protocol *msg){
     return index;
 }
 void broadcast(int index,struct protocol *msg){
+        int i;
+        char buf[128]={0};
 
+        sprintf(buf,"%s: %s\n",online[index].name,msg->data);
+        for(i=0;i<MAX_USER_NUM;i++){
+            if((online[i].fd ==-1)||(i==index))continue;
+            write(online[i].fd,buf,strlen(buf));
+        }
 }
-int find_dest_user_online(int sockfd,int *index struct protocol *msg){
+int find_dest_user_online(int sockfd,int *index ,struct protocol *msg){
     int i;
     for(i=0;i<MAX_USER_NUM;i++){
         if(online[i].flage==-1)continue;
@@ -69,11 +76,43 @@ int find_dest_user(char *name){
 }
 
 void private(int index, struct protocol *msg){
+    int dest_index;
+    char buf[128];
 
+    dest_index = find_dest_user(msg->name);
+
+    if(dest_index == -1){
+        sprintf(buf,"there is no user: %s \n",msg->name);
+        write(online[index].fd,buf,strlen(buf));
+        return;
+    }
+    else{
+        sprintf(buf, "%s to %s: %s\n",online[index].name,online[dest_index].name,msg->data);
+        write(online[dest_index].fd,buf,strlen(buf));
+        return ;
+    }
 }
 
 void list_online_user(int index){
+    int i;
+    struct protocol msg;
 
+    for(i=0;i<MAX_USER_NUM;i++){
+        if(online[i].fd==-1)continue;
+        memset(&msg,0,sizeof(msg));
+
+        msg.cmd = ONLINEUSER;
+        msg.state=ONLINEUSER_OK;
+        strcpy(msg.name,online[i].name);
+
+        printf("list online[%d].name : %s \n",i,online[i].name);
+
+        write(online[index].fd, &msg, sizeof(msg));
+    }
+    msg.cmd = ONLINEUSER;
+    msg.state= ONLINEUSER_OVER;
+
+    write(online[index].fd,&msg,sizeof(msg));
 }
 
 void registe(int sockfd,int *index,struct protocol *msg){
@@ -99,6 +138,7 @@ void registe(int sockfd,int *index,struct protocol *msg){
         msg_back.state= NAME_EXIST;
         printf("user %s exist!\n",msg->name);
         write(sockfd,&msg_back,sizeof(msg_back));
+        //write(sockfd,buf,strlen(buf));
         return;
     }
 }
@@ -106,7 +146,7 @@ void registe(int sockfd,int *index,struct protocol *msg){
 void login(int sockfd,int *index, struct protocol *msg){
     int i;
     int ret;
-    char buf[128];
+    char buf[128],buffer[128];
     struct protocol msg_back;
 
     msg_back.cmd=LOGIN;
@@ -119,16 +159,16 @@ void login(int sockfd,int *index, struct protocol *msg){
         msg_back.state=ret;
         strcpy(buf,"there is no this user.\n");
         printf("user %s login failed.\n",msg->name);
-
         write(sockfd,&msg_back,sizeof(msg_back));
+        //write(sockfd,buffer,strlen(buffer));
         return;
     }else{
         msg_back.state= OP_OK;
-        printf("user %s login succeed! index= %d \n",msg->name,*index);
+        printf("user %s login succeed! index=%d \n",msg->name,*index);
         write(online[*index].fd,&msg_back,sizeof(msg_back));
-        return;
+        //return;
     }
-    spritnf(buf,"%s online.\n",online[*index].name);
+    sprintf(buf,"%s online.\n",online[*index].name);
 
     for(i=0;i<MAX_USER_NUM;i++){
         if(online[i].fd!=-1)write(online[i].fd,buf,strlen(buf));
@@ -195,8 +235,8 @@ int main(int argc,char *argv[])
     //input format error
     if(argc!=2)
     {
-        fprintf(stderr,"Usage:%s portnumber\n",argv[0]);
-        exit(1);
+        printf("cmd:%s portnumber\n",argv[0]);
+        return;
     }
 
     //portnumber error
@@ -221,14 +261,14 @@ int main(int argc,char *argv[])
     my_addr.sin_port=htons(portnumber);
     addrLen = sizeof(struct sockaddr_in);
     //bind
-    if(bind(sockfd,(struct sockaddr *)(&my_addr),sizeof(struct sockaddr))==-1)
+    if(bind(lsfd,(struct sockaddr *)(&my_addr),sizeof(struct sockaddr))==-1)
     {
         fprintf(stderr,"Bind error:%s\n",strerror(errno));
         exit(1);
     }
 
     //listen
-    if(listen(sockfd,5)==-1)
+    if(listen(lsfd,5)==-1)
     {
         fprintf(stderr,"Listen error:%s\n",strerror(errno));
         exit(1);
@@ -244,7 +284,7 @@ int main(int argc,char *argv[])
     while(1)
     {
         //accept
-        new_fd=accept(lsfd,(struct sockaddr *)&cli_addr,&cliaddrlen);
+        newfd=accept(lsfd,(struct sockaddr *)&cli_addr,&cliaddrlen);
         printf("client:ip:%s    port:%d \n",inet_ntoa(cli_addr.sin_addr),cli_addr.sin_port);
 
         arg = (int *)malloc(sizeof(int));

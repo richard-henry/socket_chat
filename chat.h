@@ -18,7 +18,7 @@
 //online user information
 struct ONLINE{
     int fd;
-    int flag;
+    int flage;
     char name[32];
 };
 
@@ -29,7 +29,8 @@ struct protocol{
     int cmd;
     int state;
     char name[32];
-};
+    char data[64];
+    };
 
 //cmd
 #define BROADCAST 0X00000001

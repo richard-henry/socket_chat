@@ -44,10 +44,12 @@ void broadcast(int fd){
         struct protocol msg;
         msg.cmd = BROADCAST;
         printf("your message:\n#");
-        scanf("%s",msg.data);
+        getchar();
+        fgets(msg.data,64,stdin);
 
         write(fd,&msg,sizeof(msg));
         printf("press following section to continue:\n");
+        return;
 }
 void private(int fd){
         struct protocol msg;
@@ -57,10 +59,12 @@ void private(int fd){
         scanf("%s",msg.name);
 
         printf("your message:\n#");
-        scanf("%s",msg.data);
+        getchar();
+        fgets(msg.data,64,stdin);
 
         write(fd,&msg,sizeof(msg));
         printf("press following section to continue:\n");
+        return;
         
 }
 void list_online_user(sockfd){

@@ -113,6 +113,7 @@ void list_online_user(int index){
     msg.state= ONLINEUSER_OVER;
 
     write(online[index].fd,&msg,sizeof(msg));
+    return;
 }
 
 void registe(int sockfd,int *index,struct protocol *msg){
@@ -173,6 +174,7 @@ void login(int sockfd,int *index, struct protocol *msg){
     for(i=0;i<MAX_USER_NUM;i++){
         if(online[i].fd!=-1)write(online[i].fd,buf,strlen(buf));
     }
+    return;
 }
 void *func(void *arg)
 {
